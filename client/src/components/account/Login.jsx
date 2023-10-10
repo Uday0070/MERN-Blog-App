@@ -5,6 +5,7 @@ import { Box, TextField, Button, styled, Typography } from '@mui/material'
 import { API } from '../../service/api.js';
 import { DataContext } from '../../context/DataProvider.jsx';
 
+
 import { useNavigate } from 'react-router-dom';
 
 const Component = styled(Box)`
@@ -72,7 +73,6 @@ const signupInitialValues = {
     password: '',
 };
 
-
 const Login = ({setAuthenticated}) => {
     const imageURL = 'https://i.ibb.co/4jTDMCy/Dream.png';
     const [account, toggleAccount] = useState('login');
@@ -98,31 +98,40 @@ const Login = ({setAuthenticated}) => {
     };
     
     const signupUser = async () => {
+        try {
             let response = await API.userSignup(signup);
-           if (response.isSuccess) {
+            if (response.isSuccess) {
                 showError('');
                 setSignup(signupInitialValues);
-                toggleAccount('login')
-            }else {
-                showError('Something went wrong! Please try again later');
+                toggleAccount('login');
+            } else {
+                showError('Something went wrong, please try again later!');
+            }
+        } catch (error) {
+            // Handle any runtime error that may occur during the API call
+            console.error('An error occurred during signup:', error);
+            showError('Please update all required fields');
         }
     };
-
+    
     const loginUser = async () => {
-        let response = await API.userLogin(login);
-        if (response.isSuccess) {
-            showError('');
-
-            sessionStorage.setItem('accessToken', `Bearer ${response.data.accessToken}`);
-            sessionStorage.setItem('refreshToken', `Bearer ${response.data.refreshToken}`);
-            
-            setAccount ({username: response.data.username, name: response.data.name});
-
-            setAuthenticated(true);
-
-            navigate('/');
-        } else{
-            showError ('Something went wrong! Pelase try again later');
+        try {
+            let response = await API.userLogin(login);
+            if (response.isSuccess) {
+                showError('');
+                sessionStorage.setItem('accessToken', `Bearer ${response.data.accessToken}`);
+                sessionStorage.setItem('refreshToken', `Bearer ${response.data.refreshToken}`);
+    
+                setAccount({ username: response.data.username, name: response.data.name });
+                setAuthenticated(true);
+                navigate('/');
+            } else {
+                showError('Something went wrong! Please try again later');
+            }
+        } catch (error) {
+            // Handle any runtime error that may occur during the API call
+            console.error('An error occurred during login:', error);
+            showError('Please enter both username and password');
         }
     }
 
@@ -141,8 +150,8 @@ const Login = ({setAuthenticated}) => {
                 {
                     account === 'login' ?
                         <Wrapper>
-                            <TextField variant="standard" value={login.username} onChange={(e) => onValueChange(e)} name='username' label='Enter Username' />
-                            <TextField variant="standard" value={login.password} onChange={(e) => onValueChange(e)} name='password' label='Enter Password' />
+                            <TextField variant="standard" value={login.username} onChange={(e) => onValueChange(e)} name='username' label= 'Enter Username' required/>
+                            <TextField variant="standard" value={login.password} onChange={(e) => onValueChange(e)} name='password' label='Enter Password' required/>
 
                             {error && <Error>{error}</Error>}
 
@@ -154,7 +163,7 @@ const Login = ({setAuthenticated}) => {
                             <TextField variant="standard" value={signup.name} onChange={(e) => onInputChange(e)} name='name' label='Enter Name' />
                             <TextField variant="standard" value={signup.username} onChange={(e) => onInputChange(e)} name='username' label='Enter Username' />
                             <TextField variant="standard" value={signup.password} onChange={(e) => onInputChange(e)} name='password' label='Enter Password' />
-
+                            <Error id="error">{error}</Error>
                             <SignupButton onClick={() => signupUser()} >Signup</SignupButton>
                             <Text style={{ textAlign: 'center' }}>OR</Text>
                             <LoginButton variant="contained" onClick={() => toggleSignup()}>Already have an account</LoginButton>

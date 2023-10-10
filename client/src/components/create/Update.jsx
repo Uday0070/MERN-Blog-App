@@ -2,12 +2,10 @@ import React, { useState, useEffect, useContext } from 'react';
 
 import { styled, Box, TextareaAutosize, Button, InputBase, FormControl  } from '@mui/material';
 import { AddCircle as Add } from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 
 import { API } from '../../service/api';
 import { DataContext } from '../../context/DataProvider';
-
-import Comments from '../details/comments/Comments';
 
 const Container = styled(Box)(({ theme }) => ({
     margin: '50px 100px',
@@ -53,9 +51,10 @@ const initialPost = {
     createdDate: new Date()
 }
 
-const CreatePost = () => {
+const Update = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const {id} = useParams();
 
     const [post, setPost] = useState(initialPost);
     const [file, setFile] = useState('');
@@ -63,6 +62,17 @@ const CreatePost = () => {
 
     const url = post.picture ? post.picture : 'https://i.ibb.co/nsZSJpf/pexels-wendy-wei-1540343.jpghttps://images.unsplash.com/photo-1543128639-4cb7e6eeef1b?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8bGFwdG9wJTIwc2V0dXB8ZW58MHx8MHx8&ixlib=rb-1.2.1&w=1000&q=80';
     
+
+    useEffect(() => {
+        const fetchData = async () => {
+            let response = await API.getPostById(id);
+            if (response.isSuccess) {
+                setPost(response.data);
+            }
+        }
+        fetchData();
+    }, []);
+
     useEffect(() => {
         const getImage = async () => {
           if (file) {
@@ -94,11 +104,31 @@ const CreatePost = () => {
         post.categories = location.search?.split('=')[1] || 'All';
         post.username = account.username;
       }, [file]);
+    
+    
+    // useEffect(() => {
+        // const getImage = async () => {
+            // if(file) {
+                // const data = new FormData();
+                // console.log(file)
+                // data.append("name", file.name);
+                // data.append("file", file);
+                // console.log("data", data.get('file'))
+                // const response = await API.uploadFile(data);
+                // post.picture = response.data;
+            // }
+        // }
+        // getImage();
+        // post.categories = location.search?.split('=')[1] || 'All';
+        // post.username = account.username;
 
-    const savePost = async () => {
-        const response = await API.createPost(post);
+    // }, [file] )
+
+    const updateBlogPost = async () => {
+        const response = await API.updatePost(post);
+        console.log(response)
         if(response.isSuccess){
-            navigate('/');
+            navigate(`/details/${id}`);
         }
     }
 
@@ -121,18 +151,19 @@ const CreatePost = () => {
                     onChange={(e) => setFile(e.target.files[0])}
                 />
                 
-                <InputTextField onChange={(e) => handleChange(e)} name='title' placeholder="Title" />
-                <Button onClick={() => savePost()} variant="contained" color="primary">Publish</Button>
+                <InputTextField onChange={(e) => handleChange(e)} name='title' value = {post.title} placeholder="Title" />
+                <Button onClick={() => updateBlogPost()} variant="contained" color="primary">Update</Button>
             </StyledFormControl>
 
             <Textarea
                 minRows={5}
                 placeholder="Tell your story..."
                 name='description'
-                onChange={(e) => handleChange(e)} 
+                onChange={(e) => handleChange(e)}
+                value={post.description}
             />
         </Container>
     )
 }
 
-export default CreatePost;
+export default Update;

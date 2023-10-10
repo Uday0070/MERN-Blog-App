@@ -43,7 +43,7 @@ const Banner = () => {
   return (
     <Image>
       <Heading>BLOG</Heading>
-      <SubHeading>Portfolio</SubHeading>
+      <SubHeading>Write your own way</SubHeading>
     </Image>
   );
 };
